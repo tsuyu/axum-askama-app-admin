@@ -2,6 +2,11 @@
 
 A modern web application built with Axum, Askama templates, and MySQL authentication.
 
+## Contributor Notes
+
+- Architecture guide: [`ARCHITECTURE_GUIDE.md`](ARCHITECTURE_GUIDE.md)
+- Boilerplate checklist: [`PROJECT_TEMPLATE_CHECKLIST.md`](PROJECT_TEMPLATE_CHECKLIST.md)
+
 ## Features
 
 - ✨ Modern, responsive UI with gradient design
