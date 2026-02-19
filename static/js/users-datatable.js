@@ -1,5 +1,7 @@
 // Initialize DataTable for users list
 $(document).ready(function () {
+    const basePath = window.BASE_PATH || '/admin';
+
     const table = $('#usersTable').DataTable({
         // Enable server-side processing
         processing: true,
@@ -52,8 +54,8 @@ $(document).ready(function () {
                 width: '10%',
                 render: function (data, type, row) {
                     return (
-                        '<a href="/admin/users/' + data + '" class="btn btn-sm btn-gradient me-1">View</a>' +
-                        '<a href="/admin/users/' + data + '/edit" class="btn btn-sm btn-outline-secondary">Edit</a>'
+                        '<a href="' + basePath + '/users/' + data + '" class="btn btn-sm btn-gradient me-1">View</a>' +
+                        '<a href="' + basePath + '/users/' + data + '/edit" class="btn btn-sm btn-outline-secondary">Edit</a>'
                     );
                 }
             }
@@ -103,6 +105,6 @@ $(document).ready(function () {
         params.set('order_column', orderColumn);
         params.set('order_direction', orderDirection);
 
-        window.open('/admin/users/print?' + params.toString(), '_blank');
+        window.open(basePath + '/users/print?' + params.toString(), '_blank');
     });
 });

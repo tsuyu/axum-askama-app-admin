@@ -10,6 +10,7 @@ pub struct IndexTemplate {
     pub message: String,
     pub user: Option<String>,
     pub flash_success: Option<String>,
+    pub base_path: String,
 }
 
 // Error page template
@@ -18,4 +19,5 @@ pub struct IndexTemplate {
 pub struct ErrorTemplate {
     pub error_code: u16,
     pub error_message: String,
+    pub base_path: String,
 }

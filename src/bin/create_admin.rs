@@ -94,9 +94,11 @@ async fn main() {
 
     match result {
         Ok(query_result) => {
+            let host = env::var("APP_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+            let port = env::var("APP_PORT").unwrap_or_else(|_| "3000".to_string());
             println!("\n✓ Admin user created successfully!");
             println!("  User ID: {}", query_result.last_insert_id());
-            println!("\nYou can now login at: http://127.0.0.1:3001/loginadmin");
+            println!("\nYou can now login at: http://{}:{}/admin/login", host, port);
             println!("  Username: {}", username);
             println!("  Password: {}", password);
         }
@@ -123,3 +125,4 @@ fn print_usage() {
     println!("Example:");
     println!("  cargo run --bin create_admin -- -u admin -e admin@example.com -p admin123");
 }
+

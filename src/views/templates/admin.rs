@@ -8,12 +8,14 @@ use super::{AdminStateRow, CountryOption, StateOption, User};
 pub struct AdminLoginTemplate {
     pub error: Option<String>,
     pub csrf_token: String,
+    pub base_path: String,
 }
 
 #[derive(Template)]
 #[template(path = "admin/dashboard.html")]
 pub struct AdminDashboardTemplate {
     pub current_admin: Option<String>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -22,6 +24,7 @@ pub struct AdminErrorTemplate {
     pub error_code: u16,
     pub error_message: String,
     pub current_admin: Option<String>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -29,6 +32,7 @@ pub struct AdminErrorTemplate {
 pub struct AdminUsersListTemplate {
     pub page_title: String,
     pub current_admin: Option<String>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -37,6 +41,7 @@ pub struct AdminUserDetailTemplate {
     pub user: User,
     pub current_admin: Option<String>,
     pub csrf_token: String,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -53,6 +58,7 @@ pub struct AdminCreateUserTemplate {
     pub selected_country_id: i32,
     pub selected_state_id: i32,
     pub address: Option<String>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -70,6 +76,7 @@ pub struct AdminEditUserTemplate {
     pub selected_country_id: i32,
     pub selected_state_id: i32,
     pub address: Option<String>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -79,6 +86,7 @@ pub struct AdminCountriesListTemplate {
     pub current_admin: Option<String>,
     pub csrf_token: String,
     pub countries: Vec<CountryOption>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -93,6 +101,7 @@ pub struct AdminCountryFormTemplate {
     pub success: Option<String>,
     pub current_admin: Option<String>,
     pub csrf_token: String,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -102,6 +111,7 @@ pub struct AdminStatesListTemplate {
     pub current_admin: Option<String>,
     pub csrf_token: String,
     pub states: Vec<AdminStateRow>,
+    pub base_path: String,
 }
 
 #[derive(Template)]
@@ -118,4 +128,5 @@ pub struct AdminStateFormTemplate {
     pub success: Option<String>,
     pub current_admin: Option<String>,
     pub csrf_token: String,
+    pub base_path: String,
 }

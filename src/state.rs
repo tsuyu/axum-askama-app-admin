@@ -5,4 +5,5 @@ use sqlx::MySqlPool;
 pub struct AppState {
     pub db: MySqlPool,
     pub redis: RedisPool,
+    pub base_path: String,
 }

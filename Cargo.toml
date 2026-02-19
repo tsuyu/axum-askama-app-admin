@@ -1,8 +1,8 @@
 [package]
-name = "axum-askama-app"
+name = "axum-askama-admin-template"
 version = "0.1.0"
 edition = "2024"
-default-run = "axum-askama-app"
+default-run = "axum-askama-admin-template"
 
 [dependencies]
 axum = "0.7"
@@ -26,3 +26,4 @@ rand = "0.8"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = "0.2"
+

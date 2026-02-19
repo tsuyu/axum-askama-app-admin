@@ -43,6 +43,7 @@ pub async fn admin_countries_list(
                 error_code: 500,
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -53,6 +54,7 @@ pub async fn admin_countries_list(
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
         countries,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -60,11 +62,12 @@ pub async fn admin_countries_list(
 // Country create page (GET)
 pub async fn admin_country_create_page(
     admin_user: AdminUser,
+    State(state): State<AppState>,
     Extension(session): Extension<Session>,
 ) -> impl IntoResponse {
     AdminCountryFormTemplate {
         form_title: "Create Country".to_string(),
-        form_action: "/admin/countries".to_string(),
+        form_action: format!("{}/countries", state.base_path),
         submit_label: "Create Country".to_string(),
         country_id: None,
         name: None,
@@ -72,6 +75,7 @@ pub async fn admin_country_create_page(
         success: None,
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -87,7 +91,7 @@ pub async fn admin_country_create_submit(
     if !validate_csrf(&session, &form.csrf_token).await {
         return AdminCountryFormTemplate {
             form_title: "Create Country".to_string(),
-            form_action: "/admin/countries".to_string(),
+            form_action: format!("{}/countries", state.base_path),
             submit_label: "Create Country".to_string(),
             country_id: None,
             name: Some(name.clone()),
@@ -95,6 +99,7 @@ pub async fn admin_country_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -102,7 +107,7 @@ pub async fn admin_country_create_submit(
     if form.validate().is_err() {
         return AdminCountryFormTemplate {
             form_title: "Create Country".to_string(),
-            form_action: "/admin/countries".to_string(),
+            form_action: format!("{}/countries", state.base_path),
             submit_label: "Create Country".to_string(),
             country_id: None,
             name: Some(name.clone()),
@@ -110,6 +115,7 @@ pub async fn admin_country_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -117,7 +123,7 @@ pub async fn admin_country_create_submit(
     if let Err(_) = repository::create_country(&state.db, &form.name).await {
         return AdminCountryFormTemplate {
             form_title: "Create Country".to_string(),
-            form_action: "/admin/countries".to_string(),
+            form_action: format!("{}/countries", state.base_path),
             submit_label: "Create Country".to_string(),
             country_id: None,
             name: Some(name.clone()),
@@ -125,12 +131,13 @@ pub async fn admin_country_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/countries").into_response()
+    Redirect::to(&format!("{}/countries", state.base_path)).into_response()
 }
 
 // Country edit page (GET)
@@ -147,6 +154,7 @@ pub async fn admin_country_edit_page(
                 error_code: 404,
                 error_message: "Country not found.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::NOT_FOUND, template).into_response();
         }
@@ -155,6 +163,7 @@ pub async fn admin_country_edit_page(
                 error_code: 500,
                 error_message: "Failed to load country.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -162,7 +171,7 @@ pub async fn admin_country_edit_page(
 
     AdminCountryFormTemplate {
         form_title: "Edit Country".to_string(),
-        form_action: format!("/admin/countries/{}", id),
+        form_action: format!("{}/countries/{}", state.base_path, id),
         submit_label: "Save Changes".to_string(),
         country_id: Some(country.id),
         name: Some(country.name),
@@ -170,6 +179,7 @@ pub async fn admin_country_edit_page(
         success: None,
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -186,7 +196,7 @@ pub async fn admin_country_edit_submit(
     if !validate_csrf(&session, &form.csrf_token).await {
         return AdminCountryFormTemplate {
             form_title: "Edit Country".to_string(),
-            form_action: format!("/admin/countries/{}", id),
+            form_action: format!("{}/countries/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             country_id: Some(id),
             name: Some(name.clone()),
@@ -194,6 +204,7 @@ pub async fn admin_country_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -201,7 +212,7 @@ pub async fn admin_country_edit_submit(
     if form.validate().is_err() {
         return AdminCountryFormTemplate {
             form_title: "Edit Country".to_string(),
-            form_action: format!("/admin/countries/{}", id),
+            form_action: format!("{}/countries/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             country_id: Some(id),
             name: Some(name.clone()),
@@ -209,6 +220,7 @@ pub async fn admin_country_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -216,7 +228,7 @@ pub async fn admin_country_edit_submit(
     if let Err(_) = repository::update_country(&state.db, id, &form.name).await {
         return AdminCountryFormTemplate {
             form_title: "Edit Country".to_string(),
-            form_action: format!("/admin/countries/{}", id),
+            form_action: format!("{}/countries/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             country_id: Some(id),
             name: Some(name.clone()),
@@ -224,12 +236,13 @@ pub async fn admin_country_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/countries").into_response()
+    Redirect::to(&format!("{}/countries", state.base_path)).into_response()
 }
 
 // Country delete (POST)
@@ -245,6 +258,7 @@ pub async fn admin_country_delete(
             error_code: 403,
             error_message: "Invalid CSRF token".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::FORBIDDEN, template).into_response();
     }
@@ -255,6 +269,7 @@ pub async fn admin_country_delete(
                 error_code: 400,
                 error_message: "Cannot delete country with existing states.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::BAD_REQUEST, template).into_response();
         }
@@ -266,6 +281,7 @@ pub async fn admin_country_delete(
                 error_code: 400,
                 error_message: "Cannot delete country assigned to users.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::BAD_REQUEST, template).into_response();
         }
@@ -276,33 +292,44 @@ pub async fn admin_country_delete(
             error_code: 500,
             error_message: "Failed to delete country.".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/countries").into_response()
+    Redirect::to(&format!("{}/countries", state.base_path)).into_response()
 }
 
 // Admin index
-pub async fn admin_index(OptionalAdminUser(admin_user): OptionalAdminUser) -> impl IntoResponse {
+pub async fn admin_index(
+    OptionalAdminUser(admin_user): OptionalAdminUser,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
     if admin_user.is_some() {
-        Redirect::to("/admin/dashboard").into_response()
+        Redirect::to(&format!("{}/dashboard", state.base_path)).into_response()
     } else {
-        Redirect::to("/loginadmin").into_response()
+        Redirect::to(&format!("{}/login", state.base_path)).into_response()
     }
 }
 
 // Admin logout
-pub async fn admin_logout(Extension(session): Extension<Session>) -> impl IntoResponse {
+pub async fn admin_logout(
+    Extension(session): Extension<Session>,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
     let _ = AdminUser::logout(&session).await;
-    Redirect::to("/loginadmin").into_response()
+    Redirect::to(&format!("{}/login", state.base_path)).into_response()
 }
 
 // Admin dashboard (GET) - requires authentication
-pub async fn admin_dashboard(admin_user: AdminUser) -> impl IntoResponse {
+pub async fn admin_dashboard(
+    admin_user: AdminUser,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
     AdminDashboardTemplate {
         current_admin: Some(admin_user.username),
+        base_path: state.base_path.clone(),
     }
 }
 
@@ -319,6 +346,7 @@ pub async fn admin_states_list(
                 error_code: 500,
                 error_message: "Failed to load states.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -339,6 +367,7 @@ pub async fn admin_states_list(
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
         states,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -356,6 +385,7 @@ pub async fn admin_state_create_page(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -363,7 +393,7 @@ pub async fn admin_state_create_page(
 
     AdminStateFormTemplate {
         form_title: "Create State".to_string(),
-        form_action: "/admin/states".to_string(),
+        form_action: format!("{}/states", state.base_path),
         submit_label: "Create State".to_string(),
         state_id: None,
         name: None,
@@ -373,6 +403,7 @@ pub async fn admin_state_create_page(
         success: None,
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -391,6 +422,7 @@ pub async fn admin_state_create_submit(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -399,7 +431,7 @@ pub async fn admin_state_create_submit(
     if !validate_csrf(&session, &form.csrf_token).await {
         return AdminStateFormTemplate {
             form_title: "Create State".to_string(),
-            form_action: "/admin/states".to_string(),
+            form_action: format!("{}/states", state.base_path),
             submit_label: "Create State".to_string(),
             state_id: None,
             name: Some(form.name.clone()),
@@ -409,6 +441,7 @@ pub async fn admin_state_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -416,7 +449,7 @@ pub async fn admin_state_create_submit(
     if form.validate().is_err() {
         return AdminStateFormTemplate {
             form_title: "Create State".to_string(),
-            form_action: "/admin/states".to_string(),
+            form_action: format!("{}/states", state.base_path),
             submit_label: "Create State".to_string(),
             state_id: None,
             name: Some(form.name.clone()),
@@ -426,6 +459,7 @@ pub async fn admin_state_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -433,7 +467,7 @@ pub async fn admin_state_create_submit(
     if let Err(_) = repository::create_state(&state.db, form.country_id, &form.name).await {
         return AdminStateFormTemplate {
             form_title: "Create State".to_string(),
-            form_action: "/admin/states".to_string(),
+            form_action: format!("{}/states", state.base_path),
             submit_label: "Create State".to_string(),
             state_id: None,
             name: Some(form.name.clone()),
@@ -443,12 +477,13 @@ pub async fn admin_state_create_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/states").into_response()
+    Redirect::to(&format!("{}/states", state.base_path)).into_response()
 }
 
 // State edit page (GET)
@@ -465,6 +500,7 @@ pub async fn admin_state_edit_page(
                 error_code: 404,
                 error_message: "State not found.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::NOT_FOUND, template).into_response();
         }
@@ -473,6 +509,7 @@ pub async fn admin_state_edit_page(
                 error_code: 500,
                 error_message: "Failed to load state.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -485,6 +522,7 @@ pub async fn admin_state_edit_page(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -492,7 +530,7 @@ pub async fn admin_state_edit_page(
 
     AdminStateFormTemplate {
         form_title: "Edit State".to_string(),
-        form_action: format!("/admin/states/{}", id),
+        form_action: format!("{}/states/{}", state.base_path, id),
         submit_label: "Save Changes".to_string(),
         state_id: Some(state_row.id),
         name: Some(state_row.name),
@@ -502,6 +540,7 @@ pub async fn admin_state_edit_page(
         success: None,
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -521,6 +560,7 @@ pub async fn admin_state_edit_submit(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -529,7 +569,7 @@ pub async fn admin_state_edit_submit(
     if !validate_csrf(&session, &form.csrf_token).await {
         return AdminStateFormTemplate {
             form_title: "Edit State".to_string(),
-            form_action: format!("/admin/states/{}", id),
+            form_action: format!("{}/states/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             state_id: Some(id),
             name: Some(form.name.clone()),
@@ -539,6 +579,7 @@ pub async fn admin_state_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -546,7 +587,7 @@ pub async fn admin_state_edit_submit(
     if form.validate().is_err() {
         return AdminStateFormTemplate {
             form_title: "Edit State".to_string(),
-            form_action: format!("/admin/states/{}", id),
+            form_action: format!("{}/states/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             state_id: Some(id),
             name: Some(form.name.clone()),
@@ -556,6 +597,7 @@ pub async fn admin_state_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -563,7 +605,7 @@ pub async fn admin_state_edit_submit(
     if let Err(_) = repository::update_state(&state.db, id, form.country_id, &form.name).await {
         return AdminStateFormTemplate {
             form_title: "Edit State".to_string(),
-            form_action: format!("/admin/states/{}", id),
+            form_action: format!("{}/states/{}", state.base_path, id),
             submit_label: "Save Changes".to_string(),
             state_id: Some(id),
             name: Some(form.name.clone()),
@@ -573,12 +615,13 @@ pub async fn admin_state_edit_submit(
             success: None,
             current_admin: Some(admin_user.username),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/states").into_response()
+    Redirect::to(&format!("{}/states", state.base_path)).into_response()
 }
 
 // State delete (POST)
@@ -594,6 +637,7 @@ pub async fn admin_state_delete(
             error_code: 403,
             error_message: "Invalid CSRF token".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::FORBIDDEN, template).into_response();
     }
@@ -604,6 +648,7 @@ pub async fn admin_state_delete(
                 error_code: 400,
                 error_message: "Cannot delete state assigned to users.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::BAD_REQUEST, template).into_response();
         }
@@ -614,12 +659,13 @@ pub async fn admin_state_delete(
             error_code: 500,
             error_message: "Failed to delete state.".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
     }
 
     invalidate_geo_cache(&state).await;
-    Redirect::to("/admin/states").into_response()
+    Redirect::to(&format!("{}/states", state.base_path)).into_response()
 }
 
 // States API (admin)
@@ -635,11 +681,15 @@ pub async fn admin_states_api(
 }
 
 // Users list handler - requires authentication
-pub async fn users_list(admin_user: AdminUser) -> impl IntoResponse {
+pub async fn users_list(
+    admin_user: AdminUser,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
     tracing::info!("Admin {} accessed users list", admin_user.username);
     let template = AdminUsersListTemplate {
         page_title: "All Users".to_string(),
         current_admin: Some(admin_user.username),
+        base_path: state.base_path.clone(),
     };
 
     template
@@ -651,7 +701,7 @@ pub async fn users_datatable_api(
     Query(params): Query<DatatableParams>,
 ) -> impl IntoResponse {
     tracing::debug!("Admin {} requested users datatable", admin_user.username);
-    
+
     let draw = params.draw;
     let offset = params.start.unwrap_or(0);
     let limit = params.length.unwrap_or(10);
@@ -796,6 +846,7 @@ pub async fn user_create_page(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -813,6 +864,7 @@ pub async fn user_create_page(
         selected_country_id: 0,
         selected_state_id: 0,
         address: None,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -831,6 +883,7 @@ pub async fn user_create_submit(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -853,6 +906,7 @@ pub async fn user_create_submit(
             selected_country_id: form.country_id,
             selected_state_id: form.state_id,
             address: Some(form.address.clone()),
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -870,6 +924,7 @@ pub async fn user_create_submit(
             selected_country_id: form.country_id,
             selected_state_id: form.state_id,
             address: Some(form.address.clone()),
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -885,7 +940,7 @@ pub async fn user_create_submit(
     )
     .await
     {
-        Ok(_) => Redirect::to("/admin/users").into_response(),
+        Ok(_) => Redirect::to(&format!("{}/users", state.base_path)).into_response(),
         Err(e) => {
             let msg = if format!("{}", e).contains("Duplicate entry") {
                 "Username or email already exists".to_string()
@@ -904,6 +959,7 @@ pub async fn user_create_submit(
                 selected_country_id: form.country_id,
                 selected_state_id: form.state_id,
                 address: Some(form.address.clone()),
+                base_path: state.base_path.clone(),
             }
             .into_response()
         }
@@ -924,6 +980,7 @@ pub async fn user_detail(
                 error_code: 404,
                 error_message: "User not found.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::NOT_FOUND, template).into_response();
         }
@@ -932,6 +989,7 @@ pub async fn user_detail(
                 error_code: 500,
                 error_message: "Failed to load user.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -970,6 +1028,7 @@ pub async fn user_detail(
         user: template_user,
         current_admin: Some(admin_user.username),
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -988,6 +1047,7 @@ pub async fn user_edit_page(
                 error_code: 404,
                 error_message: "User not found.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::NOT_FOUND, template).into_response();
         }
@@ -996,6 +1056,7 @@ pub async fn user_edit_page(
                 error_code: 500,
                 error_message: "Failed to load user.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
         }
@@ -1008,6 +1069,7 @@ pub async fn user_edit_page(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -1033,6 +1095,7 @@ pub async fn user_edit_page(
         selected_country_id,
         selected_state_id: user.state_id.unwrap_or(0),
         address: user.address,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -1052,6 +1115,7 @@ pub async fn user_edit_submit(
                 error_code: code.as_u16(),
                 error_message: "Failed to load countries.".to_string(),
                 current_admin: Some(admin_user.username),
+                base_path: state.base_path.clone(),
             };
             return (code, template).into_response();
         }
@@ -1075,6 +1139,7 @@ pub async fn user_edit_submit(
             selected_country_id: form.country_id,
             selected_state_id: form.state_id,
             address: Some(form.address.clone()),
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -1093,6 +1158,7 @@ pub async fn user_edit_submit(
             selected_country_id: form.country_id,
             selected_state_id: form.state_id,
             address: Some(form.address.clone()),
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -1121,6 +1187,7 @@ pub async fn user_edit_submit(
             selected_country_id: form.country_id,
             selected_state_id: form.state_id,
             address: Some(form.address.clone()),
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -1140,12 +1207,13 @@ pub async fn user_edit_submit(
                 selected_country_id: form.country_id,
                 selected_state_id: form.state_id,
                 address: Some(form.address.clone()),
+                base_path: state.base_path.clone(),
             }
             .into_response();
         }
     }
 
-    Redirect::to(&format!("/admin/users/{}", id)).into_response()
+    Redirect::to(&format!("{}/users/{}", state.base_path, id)).into_response()
 }
 
 // Admin user delete (POST)
@@ -1161,6 +1229,7 @@ pub async fn user_delete(
             error_code: 403,
             error_message: "Invalid CSRF token".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::FORBIDDEN, template).into_response();
     }
@@ -1170,9 +1239,10 @@ pub async fn user_delete(
             error_code: 500,
             error_message: "Failed to delete user.".to_string(),
             current_admin: Some(admin_user.username),
+            base_path: state.base_path.clone(),
         };
         return (StatusCode::INTERNAL_SERVER_ERROR, template).into_response();
     }
 
-    Redirect::to("/admin/users").into_response()
+    Redirect::to(&format!("{}/users", state.base_path)).into_response()
 }

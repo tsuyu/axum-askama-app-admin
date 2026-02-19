@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    const basePath = window.BASE_PATH || '/admin';
     const countrySelect = $('#country_id');
     const stateSelect = $('#state_id');
     const selectedStateId = stateSelect.data('selected'); // Store the original selected state
@@ -14,7 +15,7 @@ $(document).ready(function () {
         }
 
         try {
-            const resp = await fetch('/admin/geo/states?country_id=' + encodeURIComponent(countryId));
+            const resp = await fetch(basePath + '/geo/states?country_id=' + encodeURIComponent(countryId));
             if (!resp.ok) {
                 throw new Error('Failed to load states');
             }
@@ -48,4 +49,3 @@ $(document).ready(function () {
         loadStates(countrySelect.val());
     }
 });
-

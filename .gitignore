@@ -1,3 +1,4 @@
 .env
 target/
-Cargo.lock
+logs/
+cookies.txt

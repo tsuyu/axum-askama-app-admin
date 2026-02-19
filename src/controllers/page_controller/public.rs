@@ -23,6 +23,7 @@ use super::shared::{ensure_csrf_token, validate_csrf, LoginForm};
 // Index handler
 pub async fn index(
     OptionalAuthUser(user): OptionalAuthUser,
+    State(state): State<AppState>,
     Extension(session): Extension<Session>,
 ) -> impl IntoResponse {
     let flash_success = match session.get::<String>("flash_success").await {
@@ -38,6 +39,7 @@ pub async fn index(
         message: "Hello from Axum + Askama!".to_string(),
         user: user.map(|u| u.username),
         flash_success,
+        base_path: state.base_path.clone(),
     };
 
     template
@@ -48,15 +50,17 @@ pub async fn index(
 // Admin login page (GET)
 pub async fn admin_login_page(
     OptionalAdminUser(admin_user): OptionalAdminUser,
+    State(state): State<AppState>,
     Extension(session): Extension<Session>,
 ) -> impl IntoResponse {
     if admin_user.is_some() {
-        return Redirect::to("/admin/dashboard").into_response();
+        return Redirect::to(&format!("{}/dashboard", state.base_path)).into_response();
     }
 
     AdminLoginTemplate {
         error: None,
         csrf_token: ensure_csrf_token(&session).await,
+        base_path: state.base_path.clone(),
     }
     .into_response()
 }
@@ -74,6 +78,7 @@ pub async fn admin_login_submit(
         return AdminLoginTemplate {
             error: Some("Invalid CSRF token".to_string()),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -83,6 +88,7 @@ pub async fn admin_login_submit(
         return AdminLoginTemplate {
             error: Some("Invalid login data".to_string()),
             csrf_token: ensure_csrf_token(&session).await,
+            base_path: state.base_path.clone(),
         }
         .into_response();
     }
@@ -98,6 +104,7 @@ pub async fn admin_login_submit(
                     return AdminLoginTemplate {
                         error: Some("Session error. Please try again.".to_string()),
                         csrf_token: ensure_csrf_token(&session).await,
+                        base_path: state.base_path.clone(),
                     }
                     .into_response();
                 }
@@ -108,17 +115,19 @@ pub async fn admin_login_submit(
                     return AdminLoginTemplate {
                         error: Some("Session error. Please try again.".to_string()),
                         csrf_token: ensure_csrf_token(&session).await,
+                        base_path: state.base_path.clone(),
                     }
                     .into_response();
                 }
 
-                tracing::info!("Admin session created, redirecting to /admin/dashboard");
-                Redirect::to("/admin/dashboard").into_response()
+                tracing::info!("Admin session created, redirecting to {}/dashboard", state.base_path);
+                Redirect::to(&format!("{}/dashboard", state.base_path)).into_response()
             } else {
                 tracing::warn!("Admin login failed: Invalid password for {}", credentials.username);
                 AdminLoginTemplate {
                     error: Some("Invalid username or password".to_string()),
                     csrf_token: ensure_csrf_token(&session).await,
+                    base_path: state.base_path.clone(),
                 }
                 .into_response()
             }
@@ -128,6 +137,7 @@ pub async fn admin_login_submit(
             AdminLoginTemplate {
                 error: Some("Invalid username or password".to_string()),
                 csrf_token: ensure_csrf_token(&session).await,
+                base_path: state.base_path.clone(),
             }
             .into_response()
         }
@@ -136,6 +146,7 @@ pub async fn admin_login_submit(
             AdminLoginTemplate {
                 error: Some("Database error. Please try again.".to_string()),
                 csrf_token: ensure_csrf_token(&session).await,
+                base_path: state.base_path.clone(),
             }
             .into_response()
         }
@@ -145,14 +156,15 @@ pub async fn admin_login_submit(
 // Logout handler
 pub async fn logout(Extension(session): Extension<Session>) -> impl IntoResponse {
     let _ = AuthUser::logout(&session).await;
-    Redirect::to("/index")
+    Redirect::to("/")
 }
 
 // Error handler
-pub async fn handle_404() -> impl IntoResponse {
+pub async fn handle_404(State(state): State<AppState>) -> impl IntoResponse {
     let template = ErrorTemplate {
         error_code: 404,
         error_message: "Page not found".to_string(),
+        base_path: state.base_path.clone(),
     };
 
     (StatusCode::NOT_FOUND, template)

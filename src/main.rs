@@ -95,9 +95,13 @@ async fn main() {
         .with_expiry(Expiry::OnInactivity(Duration::seconds(session_timeout_secs)));
 
     // Build our application with routes
+    let base_path = std::env::var("APP_BASE_PATH")
+        .unwrap_or_else(|_| "/admin".to_string());
+
     let app_state = AppState {
         db: pool,
         redis: redis_pool,
+        base_path,
     };
     let app = app(app_state, session_layer);
 
@@ -111,7 +115,7 @@ async fn main() {
                 .ok()
                 .and_then(|val| val.parse().ok())
         })
-        .unwrap_or(3001);
+        .unwrap_or(3000);
 
     let addr: SocketAddr = format!("{host}:{port}")
         .parse()
@@ -121,3 +125,4 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
+

@@ -56,7 +56,7 @@ where
 
         Self::from_session(&session)
             .await
-            .ok_or_else(|| Redirect::to("/login").into_response())
+            .ok_or_else(|| Redirect::to("/").into_response())
     }
 }
 
@@ -125,9 +125,12 @@ where
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())?;
 
-        Self::from_session(&session)
-            .await
-            .ok_or_else(|| Redirect::to("/loginadmin").into_response())
+        Self::from_session(&session).await.ok_or_else(|| {
+            let login_path = std::env::var("APP_BASE_PATH")
+                .map(|bp| format!("{}/login", bp))
+                .unwrap_or_else(|_| "/admin/login".to_string());
+            Redirect::to(&login_path).into_response()
+        })
     }
 }
 
@@ -151,3 +154,4 @@ where
         Ok(OptionalAdminUser(user))
     }
 }
+

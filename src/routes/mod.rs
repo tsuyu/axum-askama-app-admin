@@ -12,9 +12,11 @@ pub fn app(
     state: AppState,
     session_layer: SessionManagerLayer<RedisStore<RedisPool>>,
 ) -> Router {
+    let base_path = state.base_path.clone();
+
     Router::new()
-        .merge(public::routes())
-        .nest("/admin", admin::routes())
+        .merge(public::routes(&base_path))
+        .nest(&base_path, admin::routes())
         .nest("/api", api::routes())
         .nest_service("/static", ServeDir::new("static"))
         .fallback(crate::controllers::page_controller::handle_404)
