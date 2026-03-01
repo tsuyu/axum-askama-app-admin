@@ -22,6 +22,9 @@ use crate::state::AppState;
 
 #[tokio::main]
 async fn main() {
+     // Load environment variables
+    dotenvy::dotenv().ok();
+
     let env_name = env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
     let log_dir = env::var("LOG_DIR").ok();
 
@@ -58,9 +61,6 @@ async fn main() {
     }
 
     tracing::info!("Application starting in {} mode", env_name);
-
-    // Load environment variables
-    dotenvy::dotenv().ok();
 
     let database_url =
         std::env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
